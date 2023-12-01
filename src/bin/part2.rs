@@ -1,9 +1,7 @@
 fn main() {
     let input = include_str!("input2.txt");
-    // Step 1: Retrieve each line from input tested and works on part1
-    let lines = retrieve_individual_lines_from_input(input);
+    let lines = input.lines();
     let calibration_val_strings: Vec<String> = lines
-        .iter()
         .map(|line|
             // Step 3:  Only keep the first and last digit of the string as a two digit number
             // Tested and works on part1
@@ -19,17 +17,17 @@ fn main() {
         .map(|double_digit| double_digit.parse().unwrap())
         .collect();
     let sum: u64 = values.iter().sum();
-    dbg!(calibration_val_strings);
+    // dbg!(calibration_val_strings);
     dbg!(sum);
     
     // todo!("Convert all debug prints to asssertions...");
 }
 
-fn sum_calibration_values() -> u64 {
+fn _sum_calibration_values() -> u64 {
     let input = include_str!("example_input.txt");
-    let lines = retrieve_individual_lines_from_input(input);
-    let calibration_val_strings: Vec<String> = lines
-        .iter()
+    // let lines = retrieve_individual_lines_from_input(input);
+    let calibration_val_strings: Vec<String> = input
+        .lines()
         .map(|line|
             // Step 3:  Only keep the first and last digit of the string as a two digit number
             // Tested and works on part1
@@ -47,16 +45,6 @@ fn sum_calibration_values() -> u64 {
     let sum: u64 = values.iter().sum();
 
     sum
-}
-
-fn retrieve_individual_lines_from_input(multiline_input: &str) -> Vec<&str> {
-    multiline_input.split("\n").collect()
-}
-
-fn retrieve_digits_in_string(word: &str) -> String {
-    word.chars()
-        .filter(|single_character| single_character.is_numeric())
-        .collect()
 }
 
 #[derive(Debug, Clone)]
@@ -165,25 +153,6 @@ fn convert_name_to_digit(possible_name: &str) -> &str {
 mod tests {
     use super::*;
 
-    #[test]
-    fn returns_array_of_strings() {
-        let input = "1abc2
-pqr3stu8vwx
-a1b2c3d4e5f
-treb7uchet";
-        assert_eq!(
-            retrieve_individual_lines_from_input(input),
-            ["1abc2", "pqr3stu8vwx", "a1b2c3d4e5f", "treb7uchet"]
-        );
-    }
-
-    #[test]
-    fn returns_all_digits_contained_in_string() {
-        assert_eq!(retrieve_digits_in_string("1abc2"), "12");
-        assert_eq!(retrieve_digits_in_string("pqr3stu8vwx"), "38");
-        assert_eq!(retrieve_digits_in_string("a1b2c3d4e5f"), "12345");
-        assert_eq!(retrieve_digits_in_string("treb7uchet"), "7");
-    }
 
     #[test]
     fn retrieves_first_and_last_digit() {
@@ -208,22 +177,22 @@ zoneight234
 7pqrstsixteen
 4ninejfpd1jmmnnzjdtk5sjfttvgtdqspvmnhfbm";
 
-        let individual_words = retrieve_individual_lines_from_input(input);
+        let mut individual_words = input.lines();
 
-        assert_eq!(names_in_string2digts(individual_words[0]), "219");
-        assert_eq!(names_in_string2digts(individual_words[1]), "823");
-        assert_eq!(names_in_string2digts(individual_words[2]), "123");
-        assert_eq!(names_in_string2digts(individual_words[3]), "2134");
-        assert_eq!(names_in_string2digts(individual_words[4]), "49872");
-        assert_eq!(names_in_string2digts(individual_words[5]), "18234");
-        assert_eq!(names_in_string2digts(individual_words[6]), "76");
-        assert_eq!(names_in_string2digts(individual_words[7]), "4915");
+        assert_eq!(names_in_string2digts(individual_words.next().unwrap()), "219");
+        assert_eq!(names_in_string2digts(individual_words.next().unwrap()), "823");
+        assert_eq!(names_in_string2digts(individual_words.next().unwrap()), "123");
+        assert_eq!(names_in_string2digts(individual_words.next().unwrap()), "2134");
+        assert_eq!(names_in_string2digts(individual_words.next().unwrap()), "49872");
+        assert_eq!(names_in_string2digts(individual_words.next().unwrap()), "18234");
+        assert_eq!(names_in_string2digts(individual_words.next().unwrap()), "76");
+        assert_eq!(names_in_string2digts(individual_words.next().unwrap()), "4915");
     }
 
     #[test]
     fn full_process_on_examlple() {
         
-        assert_eq!(sum_calibration_values(), 281)
+        assert_eq!(_sum_calibration_values(), 281)
     }
 
     #[test]
