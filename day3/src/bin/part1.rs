@@ -15,7 +15,7 @@ fn parse_with_position(s: Span) -> IResult<Span, Vec<Number>> {
     todo!("I am being stumped simply because the problem is recursive on a line...")
 }
 
-fn decimal(input: &str) -> IResult<&str, usize> {
+fn decimal(input: &str) -> IResult<&str, u32> {
 
     map_res(
         preceded(
@@ -29,7 +29,7 @@ fn decimal(input: &str) -> IResult<&str, usize> {
                 )
         // )
         ),
-        |out| usize::from_str_radix(out, 10)
+        |out| u32::from_str_radix(out, 10)
     ).parse(input)
 }
 
@@ -52,7 +52,7 @@ fn main() {
 #[derive(Debug,PartialEq)]
 struct Number{
     adjacent_positions: Vec<Position>,
-    value: usize
+    value: u32
 }
 
 #[derive(Debug,PartialEq)]
@@ -64,8 +64,8 @@ enum Found {
 
 #[derive(Debug,PartialEq)]
 struct Position {
-    line: usize,
-    column: usize
+    line: u32,
+    column: u32
 }
 
 fn _get_number_positions(input_string: &str) -> Vec<Found> {
@@ -106,7 +106,7 @@ fn _get_symbol_positions(input_string: &str) -> Vec<Position> {
     .collect()
 }
 
-fn _find_single_columns(line: &str, line_number: usize) -> Vec<Position> {
+fn _find_single_columns(line: &str, line_number: u32) -> Vec<Position> {
     line
     .chars()
     .enumerate()
@@ -115,7 +115,7 @@ fn _find_single_columns(line: &str, line_number: usize) -> Vec<Position> {
     .collect()
 }
 
-// fn _get_numbers_with_columns(input: &str) -> Vec<(usize, usize)> {
+// fn _get_numbers_with_columns(input: &str) -> Vec<(u32, u32)> {
 //     input
 //     .
 // }
