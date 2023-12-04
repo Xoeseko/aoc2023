@@ -1,40 +1,9 @@
-use nom::{
-    IResult,
-    Parser,
-    multi::{many1, many0},
-    sequence::{preceded, terminated},
-    combinator::{recognize, map_res},
-    character::complete::one_of,
-  };
-  
-use nom_locate::{position, LocatedSpan};
-type Span<'a> = LocatedSpan<&'a str>;
-
-fn parse_with_position(s: Span) -> IResult<Span, Vec<Number>> {
-    // let (s, _) = 
-    todo!("I am being stumped simply because the problem is recursive on a line...")
-}
-
-fn decimal(input: &str) -> IResult<&str, usize> {
-
-    map_res(
-        preceded(
-            many0(
-                one_of(".")
-            ),
-        // position(
-            recognize(
-                many1(
-                    one_of("0123456789"))
-                )
-        // )
-        ),
-        |out| usize::from_str_radix(out, 10)
-    ).parse(input)
-}
-
 fn main() {
     let input = include_str!("input.txt");
+
+    // let loc_span = Span::new(input);
+
+    // parse_with_position(loc_span);
 
     // let result = input
     // .lines()
@@ -47,20 +16,23 @@ fn main() {
     //     .map(move |(char_index, _)| Position{line: line_number, column: char_index})
     // });
     // dbg!(result);
+
+    let res = _get_number_positions(input);
+    dbg!(res);
 }
 
 #[derive(Debug,PartialEq)]
 struct Number{
-    adjacent_positions: Vec<Position>,
-    value: usize
+    last_digit_position: Position,
+    value: u32
 }
 
-#[derive(Debug,PartialEq)]
-enum Found {
-    Number(Number),
-    Symbol,
-    None
-}
+// #[derive(Debug,PartialEq)]
+// enum Found {
+//     Number(Number),
+//     Symbol,
+//     None
+// }
 
 #[derive(Debug,PartialEq)]
 struct Position {
@@ -68,7 +40,7 @@ struct Position {
     column: usize
 }
 
-fn _get_number_positions(input_string: &str) -> Vec<Found> {
+fn _get_number_positions(input_string: &str) -> Vec<Number> {
     input_string
     .lines()
     .enumerate()
@@ -77,19 +49,29 @@ fn _get_number_positions(input_string: &str) -> Vec<Found> {
             line_contents.chars()
             .enumerate()
             .filter(|(_, character)| character.is_digit(10))
-            // .fold(
-                
-            // )
-            .map(|(char_index, character)| 
-            Found::Number(Number{
-                adjacent_positions: vec![
-                    Position{
-                        line: line_number, 
-                        column: char_index
-                    }],
-                value: 0
-            }))
-            .collect::<Vec<Found>>()
+            .inspect(|(_, current_char)| {dbg!(current_char);})
+            // .take_while(|(_, current_char)| current_char.is_digit(10))
+            // .fold(String::new(), |num_string, (_, character)| {
+            //     num_string.push(character);
+
+            //     num_string
+            // })
+            .fold(Vec::<Number>::new(), |mut current_numbers, (char_index, character)| {
+                if current_numbers.is_empty() {
+                    current_numbers.push(
+                        Number { last_digit_position: Position { line: line_number, column: char_index }, value: character.to_digit(10).unwrap() })
+                } else if current_numbers.last().unwrap().last_digit_position.column == char_index - 1 {
+                    current_numbers.last_mut().unwrap().value = current_numbers.last_mut().unwrap().value * 10 + character.to_digit(10).unwrap();
+                    current_numbers.last_mut().unwrap().last_digit_position.column = char_index;
+                } else {
+                    current_numbers.push(
+                        Number { last_digit_position: Position { line: line_number, column: char_index }, value: character.to_digit(10).unwrap() }
+                    )
+                }
+
+                current_numbers
+            })
+            // .collect::<Vec<Number>>()
         }
     )
     .collect()
@@ -114,11 +96,6 @@ fn _find_single_columns(line: &str, line_number: usize) -> Vec<Position> {
     .map(|(char_index, _)| Position{line: line_number, column: char_index})
     .collect()
 }
-
-// fn _get_numbers_with_columns(input: &str) -> Vec<(usize, usize)> {
-//     input
-//     .
-// }
 
 #[cfg(test)]
 mod tests {
@@ -159,51 +136,39 @@ mod tests {
         assert!(positions.contains(&Position{line: 0, column: 5}));
     }
 
-//     #[test]
-//     fn retrieve_number_and_related_positions() {
-//         let input = "467..114..
-// ...*......
-// ..35..633.
-// ......#...
-// 617*......
-// .....+.58.
-// ..592.....
-// ......755.
-// ...$.*....
-// .664.598..";
-//         let number_positions = _get_number_positions(input);
-
-//         assert_eq!(
-//             number_positions[0], 
-//             Found::Number {
-//                 adjacent_positions: vec![
-//                     Position{line: 1, column: 0},
-//                     Position{line: 1, column: 1},
-//                     Position{line: 1, column: 2},
-//                     Position{line: 1, column: 3},
-//                 ], 
-//                 value: 467 }
-//         )
-//     }
-
     #[test]
-    fn retrieve_number_from_line_with_nom() {
-        let input = "467..114..";
-// ...*......
-// ..35..633.
-// ......#...
-// 617*......
-// .....+.58.
-// ..592.....
-// ......755.
-// ...$.*....
-// .664.598..";
+    fn retrieve_number_and_related_positions() {
+        let input = "467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598..";
+        let number_positions = _get_number_positions(input);
 
-        let res = decimal(input);
-
-        assert_eq!(res.unwrap(), ("..114..", 467));
-        assert_eq!(decimal("..114..").unwrap(), ("..", 114))
-
+        assert_eq!(
+            number_positions[0], 
+            Number {
+                last_digit_position: Position{
+                    line: 0, column: 2
+                },
+                value: 467 }
+            )
+        }
+        
+        #[test]
+    fn retrieve_adjacent_positions() {
+            
+            // adjacent_positions: vec![
+            //     Position{line: 1, column: 0},
+            //     Position{line: 1, column: 1},
+            //     Position{line: 1, column: 2},
+            //     Position{line: 1, column: 3},
+            // ], 
     }
 
     #[test]
@@ -219,7 +184,7 @@ mod tests {
 // ...$.*....
 // .664.598..";
 
-        assert_eq!(_get_numbers_with_columns(input), vec![(467, 0), (114, 5)]);
+        // assert_eq!(_get_numbers_with_columns(input), vec![(467, 0), (114, 5)]);
         
     }
 
