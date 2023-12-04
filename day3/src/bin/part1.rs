@@ -1,3 +1,26 @@
+use nom::{
+    IResult,
+    Parser,
+    multi::{many1, many0},
+    sequence::{preceded, terminated},
+    combinator::{recognize, map_res},
+    character::complete::one_of,
+  };
+  
+  fn decimal(input: &str) -> IResult<&str, usize> {
+    map_res(
+        preceded(
+            many0(
+                one_of(".")
+            ),
+        recognize(
+            many1(
+                one_of("0123456789"))
+            )),
+            |out| usize::from_str_radix(out, 10)
+    ).parse(input)
+  }
+
 fn main() {
     let input = include_str!("input.txt");
 
@@ -142,6 +165,24 @@ mod tests {
 //                 value: 467 }
 //         )
 //     }
+
+    #[test]
+    fn retrieve_number_from_line_with_nom() {
+        let input = "467..114..";
+// ...*......
+// ..35..633.
+// ......#...
+// 617*......
+// .....+.58.
+// ..592.....
+// ......755.
+// ...$.*....
+// .664.598..";
+
+        let res = decimal(input);
+
+        assert_eq!(res.unwrap(), ("..114..", 467));
+        assert_eq!(decimal("..114..").unwrap(), ("..", 114))
 
     }
 }
