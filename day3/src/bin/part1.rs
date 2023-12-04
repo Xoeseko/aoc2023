@@ -7,19 +7,31 @@ use nom::{
     character::complete::one_of,
   };
   
-  fn decimal(input: &str) -> IResult<&str, usize> {
+use nom_locate::{position, LocatedSpan};
+type Span<'a> = LocatedSpan<&'a str>;
+
+fn parse_with_position(s: Span) -> IResult<Span, Vec<Number>> {
+    // let (s, _) = 
+    todo!("I am being stumped simply because the problem is recursive on a line...")
+}
+
+fn decimal(input: &str) -> IResult<&str, usize> {
+
     map_res(
         preceded(
             many0(
                 one_of(".")
             ),
-        recognize(
-            many1(
-                one_of("0123456789"))
-            )),
-            |out| usize::from_str_radix(out, 10)
+        // position(
+            recognize(
+                many1(
+                    one_of("0123456789"))
+                )
+        // )
+        ),
+        |out| usize::from_str_radix(out, 10)
     ).parse(input)
-  }
+}
 
 fn main() {
     let input = include_str!("input.txt");
@@ -38,11 +50,14 @@ fn main() {
 }
 
 #[derive(Debug,PartialEq)]
+struct Number{
+    adjacent_positions: Vec<Position>,
+    value: usize
+}
+
+#[derive(Debug,PartialEq)]
 enum Found {
-    Number{
-        adjacent_positions: Vec<Position>,
-        value: usize
-    },
+    Number(Number),
     Symbol,
     None
 }
@@ -66,14 +81,14 @@ fn _get_number_positions(input_string: &str) -> Vec<Found> {
                 
             // )
             .map(|(char_index, character)| 
-            Found::Number{
+            Found::Number(Number{
                 adjacent_positions: vec![
                     Position{
                         line: line_number, 
                         column: char_index
                     }],
                 value: 0
-            })
+            }))
             .collect::<Vec<Found>>()
         }
     )
@@ -99,6 +114,11 @@ fn _find_single_columns(line: &str, line_number: usize) -> Vec<Position> {
     .map(|(char_index, _)| Position{line: line_number, column: char_index})
     .collect()
 }
+
+// fn _get_numbers_with_columns(input: &str) -> Vec<(usize, usize)> {
+//     input
+//     .
+// }
 
 #[cfg(test)]
 mod tests {
@@ -185,4 +205,22 @@ mod tests {
         assert_eq!(decimal("..114..").unwrap(), ("..", 114))
 
     }
+
+    #[test]
+    fn retrieve_number_from_line_with_columns() {
+        let input = "467..114..";
+// ...*......
+// ..35..633.
+// ......#...
+// 617*......
+// .....+.58.
+// ..592.....
+// ......755.
+// ...$.*....
+// .664.598..";
+
+        assert_eq!(_get_numbers_with_columns(input), vec![(467, 0), (114, 5)]);
+        
+    }
+
 }
