@@ -23,6 +23,7 @@ fn main() {
 
 #[derive(Debug,PartialEq)]
 struct Number{
+    first_digit_col: usize,
     last_digit_position: Position,
     value: u32
 }
@@ -50,22 +51,30 @@ fn _get_number_positions(input_string: &str) -> Vec<Number> {
             .enumerate()
             .filter(|(_, character)| character.is_digit(10))
             .inspect(|(_, current_char)| {dbg!(current_char);})
-            // .take_while(|(_, current_char)| current_char.is_digit(10))
-            // .fold(String::new(), |num_string, (_, character)| {
+        // .take_while(|(_, current_char)| current_char.is_digit(10))
+        // .fold(String::new(), |num_string, (_, character)| {
             //     num_string.push(character);
-
+            
             //     num_string
             // })
             .fold(Vec::<Number>::new(), |mut current_numbers, (char_index, character)| {
                 if current_numbers.is_empty() {
                     current_numbers.push(
-                        Number { last_digit_position: Position { line: line_number, column: char_index }, value: character.to_digit(10).unwrap() })
-                } else if current_numbers.last().unwrap().last_digit_position.column == char_index - 1 {
+                        Number {
+                            first_digit_col: char_index,
+                            last_digit_position: Position { line: line_number, column: char_index }, 
+                            value: character.to_digit(10).unwrap() 
+                        })
+                    } else if current_numbers.last().unwrap().last_digit_position.column == char_index - 1 {
                     current_numbers.last_mut().unwrap().value = current_numbers.last_mut().unwrap().value * 10 + character.to_digit(10).unwrap();
                     current_numbers.last_mut().unwrap().last_digit_position.column = char_index;
                 } else {
                     current_numbers.push(
-                        Number { last_digit_position: Position { line: line_number, column: char_index }, value: character.to_digit(10).unwrap() }
+                        Number {
+                            first_digit_col: char_index,
+                            last_digit_position: Position { line: line_number, column: char_index }, 
+                            value: character.to_digit(10).unwrap() 
+                        }
                     )
                 }
 
@@ -75,7 +84,7 @@ fn _get_number_positions(input_string: &str) -> Vec<Number> {
         }
     )
     .collect()
-
+    
 }
 
 fn _get_symbol_positions(input_string: &str) -> Vec<Position> {
@@ -83,9 +92,9 @@ fn _get_symbol_positions(input_string: &str) -> Vec<Position> {
     .lines()
     .enumerate()
     .flat_map(|(line_number, line_content)|
-        _find_single_columns(line_content, line_number)
-    )
-    .collect()
+    _find_single_columns(line_content, line_number)
+)
+.collect()
 }
 
 fn _find_single_columns(line: &str, line_number: usize) -> Vec<Position> {
@@ -94,6 +103,14 @@ fn _find_single_columns(line: &str, line_number: usize) -> Vec<Position> {
     .enumerate()
     .filter(|(_, character)| *character != '.' && character.is_ascii_punctuation())
     .map(|(char_index, _)| Position{line: line_number, column: char_index})
+    .collect()
+}
+
+fn _get_adjacent_positions(num_with_last_digit_pos: Number) -> Vec<Position> {
+    // Probably the laziest solution ever...
+    ((num_with_last_digit_pos.first_digit_col)
+    ..=num_with_last_digit_pos.last_digit_position.column + 1)
+    .map(|digit_col| Position { line: num_with_last_digit_pos.last_digit_position.line + 1, column: digit_col })
     .collect()
 }
 
@@ -153,6 +170,7 @@ mod tests {
         assert_eq!(
             number_positions[0], 
             Number {
+                first_digit_col: 0,
                 last_digit_position: Position{
                     line: 0, column: 2
                 },
@@ -161,15 +179,55 @@ mod tests {
         }
         
         #[test]
-    fn retrieve_adjacent_positions() {
-            
-            // adjacent_positions: vec![
-            //     Position{line: 1, column: 0},
-            //     Position{line: 1, column: 1},
-            //     Position{line: 1, column: 2},
-            //     Position{line: 1, column: 3},
-            // ], 
+    fn retrieve_adjacent_positions_1st_line() {
+
+        let actual_adjacent_positions = _get_adjacent_positions(Number {
+            first_digit_col: 0,
+            last_digit_position: Position {
+                line: 0,
+                column: 2,
+            },
+            value: 467,
+        });
+        
+        let expected_adjacent_positions = vec![
+            Position{line: 1, column: 0},
+            Position{line: 1, column: 1},
+            Position{line: 1, column: 2},
+            Position{line: 1, column: 3},
+        ];
+
+        assert_eq!(actual_adjacent_positions, expected_adjacent_positions);
     }
+
+    #[test]
+    fn retrieve_adjacent_positions_other_line() {
+
+        let actual_adjacent_positions = _get_adjacent_positions(Number {
+            first_digit_col: 0,
+            last_digit_position: Position {
+                line: 1,
+                column: 2,
+            },
+            value: 467,
+        });
+        
+        let expected_adjacent_positions = vec![
+            // previous line
+            Position{line: 0, column: 0},
+            Position{line: 2, column: 2},
+            Position{line: 2, column: 2},
+            Position{line: 2, column: 3},
+            // Following line
+            Position{line: 2, column: 0},
+            Position{line: 2, column: 2},
+            Position{line: 2, column: 2},
+            Position{line: 2, column: 3},
+        ];
+
+        assert_eq!(actual_adjacent_positions, expected_adjacent_positions);
+    }
+
 
     #[test]
     fn retrieve_number_from_line_with_columns() {
