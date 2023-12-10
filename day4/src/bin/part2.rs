@@ -1,0 +1,131 @@
+use std::{collections::BTreeMap, ops::Range};
+
+fn main() {
+    let input = include_str!("input.txt");
+    // let res: u32 = input.lines()
+    // .map(
+    //     _get_to_contents_in_line
+    // )
+    // .map(|played_winning_pair| {
+    //     played_winning_pair
+    //     .split("|")
+    //     .map(|spaced_numbers| spaced_numbers.split_whitespace().map(|num| num.parse::<u32>().expect("Should be a number")).collect::<Vec<u32>>()) // Need to create a collection to facilitate comparisons
+    // })
+    // .map(_sum_winning_numbers)
+    // .sum();
+
+    // dbg!(res);
+}
+
+fn process(input: &str) -> u32 {
+    let map = input
+    .lines()
+    .map(
+        _get_to_contents_in_line
+    )
+    .map(|played_winning_pair| {
+        played_winning_pair
+        .split("|")
+        .map(|spaced_numbers| spaced_numbers.split_whitespace().map(|num| num.parse::<u32>().expect("Should be a number")).collect::<Vec<u32>>()) // Need to create a collection to facilitate comparisons
+    })
+    .map(_count_winning_numbers)
+    .enumerate()
+    // .map(|(index, winning_numbers)| _sum_winning_numbers(winning_numbers)) // Original verision simply summing values...
+    .fold(BTreeMap::new(), |mut map, (card_unique_index, winning_number_count)| {
+        map.insert(card_unique_index, (card_unique_index + 2)..(2 + card_unique_index + winning_number_count as usize));
+        map
+    });
+    // .map(|found_card_unique_index, related_cards_to_check| )
+
+    dbg!(map);
+    todo!()
+    // .sum()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn scracth_card_total_withpart2_rules() {
+        let input = "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
+Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
+Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1
+Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
+Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
+Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11";
+
+        let res: u32 = process(input);
+
+
+        // Represents the amount of cards total knowing that the number of matching numbers is the amount of subsequent cards you get
+        // You then need to count the following lines for each winning line.
+        // Storing line Card numbers could have proven useful for this problem
+        // Also, storing the result in order not to have to recompute it multiple times.
+        assert_eq!(30, res);
+
+    }
+
+    #[test]
+    fn rerieves_numbers_and_winning_numbers(){
+        let res = _get_to_contents_in_line("Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53");
+
+        assert_eq!(res, "41 48 83 86 17 | 83 86  6 31 17  9 48 53")
+    }
+
+    #[test]
+    fn count_total_amount_of_cards_from_a_map(){
+        let mut map = BTreeMap::new();
+        map.insert(0, 2..6);
+        map.insert(1, 3..5);
+        map.insert(2, 4..6);
+        map.insert(3, 5..6);
+        map.insert(4, 6..6);
+        map.insert(5, 7..7);
+
+        let res = _count_cards_in_map(map);
+
+        assert_eq!(30, res)
+    }
+}
+
+fn _get_to_contents_in_line(line: &str) -> &str {
+    line.split(": ").last().expect("The input should be of the format '[ANYTHING]: [NUMBERS_PLAYED] | [WINNING_NUMBERS]")
+}
+
+fn _count_winning_numbers(mut pair_iter: impl Iterator<Item = Vec<u32>>) -> u32 {
+    let played = pair_iter.next().expect("Should be a valid collection of integers.");
+    let winning = pair_iter.last().expect("Should be a valid collection of integers.");
+
+
+    let count: u32 = played.iter().filter(|current_num| winning.contains(current_num)).count().try_into().expect("Value should fit in u32");
+
+    count
+}
+
+fn _recursive_find_and_count(card_index: usize, map: BTreeMap<usize, Range<usize>>) -> usize {
+    match map.get(&card_index) {
+        Some(referenced_cards) if referenced_cards.len() == 0 => 1,
+        Some(referenced_cards) => referenced_cards.map(|inner_card| _recursive_find_and_count(inner_card, map.clone())).sum(),
+        None => panic!("All numbers should be in map.")
+    }
+}
+
+fn _recursive_find_and_count_on_range(referenced_cards: Range<usize>, map: BTreeMap<usize, Range<usize>>) -> usize {
+    referenced_cards
+    .fold(0, |current_count, card_index|{
+        current_count + match map.get(&card_index) {
+            Some(inner_referenced_cards) if inner_referenced_cards.len() == 0 => 1,
+            Some(inner_referenced_cards) => _recursive_find_and_count_on_range(referenced_cards.next().expect("Has to exist")..referenced_cards.last().expect("Shouldn't be consumed"), map.clone()),
+            None => panic!("All numbers should be in map.")
+        }
+    })
+}
+
+fn _count_cards_in_map(map: BTreeMap<usize, Range<usize>>) -> usize{
+    map
+    .iter()
+    .map(|(unique_card_index, _)| _recursive_find_and_count(*unique_card_index, map.clone()));
+
+    todo!()
+}
