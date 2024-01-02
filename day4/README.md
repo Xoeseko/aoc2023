@@ -1,3 +1,3 @@
-# day4-python
+# day4
 
 Describe your project here.

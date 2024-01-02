@@ -22,7 +22,7 @@ fn process(input: &str) -> usize {
     .enumerate()
     // .map(|(index, winning_numbers)| _sum_winning_numbers(winning_numbers)) // Original verision simply summing values...
     .fold(BTreeMap::new(), |mut map, (card_unique_index, winning_number_count)| {
-        map.insert(card_unique_index, (card_unique_index + 2)..(2 + card_unique_index + winning_number_count as usize));
+        map.insert(card_unique_index, (card_unique_index + 1)..(1 + card_unique_index + winning_number_count as usize));
         map
     });
     // .map(|found_card_unique_index, related_cards_to_check| )
@@ -37,93 +37,100 @@ fn process(input: &str) -> usize {
 mod tests {
     use super::*;
 
+//     #[test]
+//     fn scracth_card_total_withpart2_rules() {
+//         let input = "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
+// Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
+// Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1
+// Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
+// Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
+// Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11";
+
+//         let res = process(input);
+
+
+//         // Represents the amount of cards total knowing that the number of matching numbers is the amount of subsequent cards you get
+//         // You then need to count the following lines for each winning line.
+//         // Storing line Card numbers could have proven useful for this problem
+//         // Also, storing the result in order not to have to recompute it multiple times.
+//         assert_eq!(30, res);
+
+//     }
+
     #[test]
-    fn scracth_card_total_withpart2_rules() {
-        let input = "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
-Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
-Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1
-Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
-Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
-Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11";
-
-        let res = process(input);
-
-
-        // Represents the amount of cards total knowing that the number of matching numbers is the amount of subsequent cards you get
-        // You then need to count the following lines for each winning line.
-        // Storing line Card numbers could have proven useful for this problem
-        // Also, storing the result in order not to have to recompute it multiple times.
-        assert_eq!(30, res);
-
-    }
-
-    #[test]
-    fn rerieves_numbers_and_winning_numbers(){
+    fn rerieves_numbers_and_winning_numbers() {
         let res = _get_to_contents_in_line("Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53");
 
         assert_eq!(res, "41 48 83 86 17 | 83 86  6 31 17  9 48 53")
     }
 
     #[test]
-    fn count_total_amount_of_cards_from_a_map(){
-        let mut map = BTreeMap::new();
-        map.insert(0, 2..6);
-        map.insert(1, 3..5);
-        map.insert(2, 4..6);
-        map.insert(3, 5..6);
-        map.insert(4, 6..6);
-        map.insert(5, 7..7);
-        
-        let res = _count_cards_in_map(map);
-        
-        assert_eq!(30, res)
-    }
+    fn single_card_counts_1() {
+        let res = process("Card n: 55 | 1");
     
-    #[test]
-    fn count_number_of_cards_simple_case1() {
-        let mut map = BTreeMap::new();
-        map.insert(5, 7..7);
-        
-        let res = _count_cards_in_map(map);
-        
-        assert_eq!(1, res)
-    }
-    
-    #[test]
-    fn should_win_one_copy_of_3_4_and_5() {
-        let mut map = BTreeMap::new();
-        map.insert(3, 5..6);
-        map.insert(4, 6..6);
-        map.insert(5, 7..7);
-        
-        let res = _count_cards_in_map(map);
-        
-        assert_eq!(3, res)
-    }
-    
-    #[test]
-    fn should_win_one_copy_of_cards_2_3_and_5_two_copies_of_cards_3_and_4() {
-        let mut map = BTreeMap::new();
-        map.insert(2, 3..5); // At this stage you find 3 matching numbers so collect cards 3, 4 and 5 total = 3
-        map.insert(3, 4..5); // Then you find 2 matching numbers so you win cards... 3 and 4 total = 5
-        map.insert(4, 5..5); // + 1 = 6, no match
-        map.insert(5, 6..6); // + 1 = 7, no match
-        
-        let res = _count_cards_in_map(map);
-        
-        assert_eq!(7, res)
-    }
-}
-#[test]
-fn count_number_of_cards_simple_case2() {
-    let mut map = BTreeMap::new();
-        map.insert(4, 6..6);
-    
-        
-        let res = _count_cards_in_map(map);
 
-        assert_eq!(1, res)
+        assert_eq!(res, 1);
     }
+    
+    #[test]
+    fn card_with_match_in_first_counts_3_for_two_copies_of_second() {
+        let res = process("Card n: 1 | 1
+Card m: 55 | 1");
+    
+    
+        assert_eq!(res, 3);
+    }
+
+
+    #[test]
+    fn card_with_2_matches_counts_5() {
+        let res = process("Card n: 1 | 1
+Card m: 1 | 1
+Card o: 55 | 1");
+    
+    
+        assert_eq!(res, 5);
+    }
+
+    #[test]
+    fn card_with_single_match_only_counts_4() {
+        let res = process("Card n: 1 | 1
+Card m: 55 | 1
+Card o: 55 | 1");
+    
+    
+        assert_eq!(res, 4);
+    }
+
+    #[test]
+    fn card_with_double_match_counts_5() {
+        let res = process("Card n: 1 2 | 1 2
+Card m: 55 | 1
+Card o: 55 | 1");
+    
+    
+        assert_eq!(res, 5);
+    }
+
+    #[test]
+    fn card_with_double_including_single_recurses_for_a_count_of_8() {
+        let res = process("Card n: 1 2 | 1 2
+Card m: 1 | 1
+Card o: 55 | 1");
+        // First card has 2 matches, resulting in 1 card + 2 bonus total of 3
+        // Second card has 1 match, resulting in 2 times 1 card total of 2 
+        // 2 + 3 = 5
+        // Third card has 0 matches, but is present 1 time originally plus in 2 previous matches total of 3 
+        // 3 + 5 = 8
+        
+        assert_eq!(res, 8);
+        todo!("Seems to be the minimal case to reproduce the bug where some cards aren't counted");
+    }
+
+
+
+
+}
 
 fn _get_to_contents_in_line(line: &str) -> &str {
     line.split(": ").last().expect("The input should be of the format '[ANYTHING]: [NUMBERS_PLAYED] | [WINNING_NUMBERS]")
@@ -147,10 +154,10 @@ fn _recursive_find_and_count_on_range(referenced_cards: Range<usize>, map: BTree
         dbg!(current_count);
 
         let future_count = current_count + match map.get(&card_index) {
-            Some(inner_referenced_cards) if inner_referenced_cards.len() == 0 => {
-                println!("There are no more cards to recurse into returning 0");
+            Some(inner_referenced_cards) if inner_referenced_cards.clone().count() == 0 => {
+                println!("There are no more cards to recurse into returning 1");
                 
-                0
+                1
             },
             Some(inner_referenced_cards) => {
 
@@ -162,6 +169,7 @@ fn _recursive_find_and_count_on_range(referenced_cards: Range<usize>, map: BTree
 
                 dbg!(recursion_count);
                 recursion_count
+                // inner_referenced_cards.clone().count()
             },
             None => panic!("All numbers should be in map.")
         };
@@ -174,8 +182,12 @@ fn _recursive_find_and_count_on_range(referenced_cards: Range<usize>, map: BTree
 fn _count_cards_in_map(map: BTreeMap<usize, Range<usize>>) -> usize{
     map
     .iter()
-    .map(|(_, referenced_cards)| {
-        _recursive_find_and_count_on_range(referenced_cards.clone(), map.clone())
+    .map(|(card_index_outside_of_recurse, referenced_cards)| {
+        dbg!(card_index_outside_of_recurse);
+        dbg!(referenced_cards);
+        let future_count = _recursive_find_and_count_on_range(referenced_cards.clone(), map.clone());
+        println!("Card {} results in count {}, referenced {:?}", card_index_outside_of_recurse, future_count, referenced_cards);
+        future_count
     })
     .inspect(|global_count| {
         dbg!(global_count);

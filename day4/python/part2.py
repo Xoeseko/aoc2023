@@ -124,6 +124,6 @@ def test_example_input_totals_30():
 
 
 if __name__ == "__main__":
-    games = parse_games_from_file(Path("input.txt"))
+    games = parse_games_from_file(Path("src") / Path("bin") / Path("input.txt"))
     total = count_cards_with_matches(games)
     print(f"{total}")
