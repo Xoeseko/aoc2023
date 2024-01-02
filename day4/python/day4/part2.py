@@ -23,7 +23,7 @@ def parse_games_from_file(input_file: Path) -> Generator[card, None, None]:
 
 
 def str_to_num_list(space_separated_numbers: str) -> Iterable[int]:
-    return map(lambda num_str: int(num_str), space_separated_numbers.split())
+    return [int(num_str) for num_str in space_separated_numbers.split()]
 
 
 def count_elements_in_common_between_two_sets(played, winning):
