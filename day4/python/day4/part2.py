@@ -2,6 +2,8 @@ from pathlib import Path
 from typing import Generator, Iterable
 from typing import NamedTuple
 
+from day4._lowlevel import find_number_of_exemplaries
+
 
 class card(NamedTuple):
     played: Iterable[int]
@@ -41,8 +43,7 @@ def count_cards_with_matches(cards: Iterable[card]):
     - A more dynamic strategy where, for each card, you store the count in a table which can be updated then sum the values in the table.
         {card_number: exemplaries, match_count} You need to store two informations, the number of exemplaries up till now which will get updated as we move
     """
-    # card_list = list(cards)
-    return sum(find_number_of_exemplaries_per_card(cards))
+    return sum(find_number_of_exemplaries(cards))
 
 
 def find_number_of_exemplaries_per_card(cards: Iterable[card]) -> list[int]:
@@ -105,7 +106,7 @@ def test_card_with_single_match_counts_following_card_twice():
 
 
 def test_card_with_single_match_gets_correct_total():
-    total = count_cards_with_matches([card([1, 2], [1, 3]), card([2, 4], [3, 5])])
+    total = count_cards_with_matches([card(set([1, 2]), set([1, 3])), card(set([2, 4]), set([3, 5]))])
     assert total == 3
 
 

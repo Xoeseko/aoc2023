@@ -16,41 +16,47 @@ pub struct Card {
 }
 
 pub fn find_number_of_exemplaries_per_card(cards: impl Iterator<Item = Card> + Clone) -> Vec<u32> {
-    let mut exemplaries = vec![1; cards.clone().count()];
-    for (card_index, card) in cards.enumerate() {
-        println!("Card index: {:?}", card_index);
-        println!("Card: {:?}", card);
+    let cards: Vec<_> = cards.collect();
+    let mut exemplaries = vec![1; cards.len()];
+
+    for (card_index, card) in cards.into_iter().enumerate() {
         let common_count = card.winning.intersection(&card.played).count();
-        println!("Has {:?} common numbers.", common_count);
         for delta in (card_index + 1)..(card_index + common_count + 1) {
             exemplaries[delta] = exemplaries[delta] + exemplaries[card_index];
         }
-        println!("Exemplaries: {:?}", exemplaries)
     }
+
     Vec::from(exemplaries)
 }
 
 #[pyfunction]
-fn find_number_of_exemplaries(cards: &PyIterator) -> PyResult<Vec<u32>> {
-    let cards = cards.into_iter().map(|card| {
-        let card = card.expect("card must exist.");
-        let winning = card
-            .getattr("winning")
-            .expect("`winning` attribute must exist.")
-            .extract::<HashSet<u32>>()
-            .expect("`winning` attribute must exist.");
-        let played = card
-            .getattr("played")
-            .expect("`played` attribute must exist.")
-            .extract::<HashSet<u32>>()
-            .expect("`played` attribute must exist.");
-        Card { winning, played }
-    });
-    Ok(find_number_of_exemplaries_per_card(cards))
+fn find_number_of_exemplaries(cards: PyObject) -> PyResult<Vec<u32>> {
+    Python::with_gil(|py| {
+        let cards = PyIterator::from_object(py, &cards)
+        .expect("cards must be iterable.")
+        .map(|card| {
+            let card = card.expect("card must exist.");
+            let winning = card
+                .getattr("winning")
+                .expect("`winning` attribute must exist.")
+                .extract::<HashSet<u32>>()
+                .expect("`winning` attribute must exist.");
+            let played = card
+                .getattr("played")
+                .expect("`played` attribute must exist.")
+                .extract::<HashSet<u32>>()
+                .expect("`played` attribute must exist.");
+            Card { winning, played }
+        });
+        Ok(find_number_of_exemplaries_per_card(cards.into_iter()))
+
+    })
 }
 
 #[cfg(test)]
 mod tests {
+    use pyo3::types::PyList;
+
     use super::*;
 
     #[test]
