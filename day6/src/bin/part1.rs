@@ -1,19 +1,19 @@
 fn main() {
-    let input = include_str!("input.txt");
+    let input = include_str!("input_part2.txt");
 
-    let lines: Vec<Vec<u32>> = input
+    let lines: Vec<Vec<u64>> = input
     .lines()
     .map(|line| {
         line
         .split(':')
         .last()
         .expect("There should be values after the ':'")
-        .split_whitespace().map(|num| num.parse::<u32>().expect("Should be a number"))
+        .split_whitespace().map(|num| num.parse::<u64>().expect("Should be a number"))
         .collect()
     })
     .collect();
 
-    let result: u32 = 
+    let result: u64 = 
     lines[0]
     .iter()
     .zip(lines[1].iter())
@@ -29,21 +29,21 @@ fn main() {
 
 #[derive(Debug)]
 struct Race {
-    time: u32,
-    record_distance: u32,
+    time: u64,
+    record_distance: u64,
 }
 
-fn pressed_to_distance_over_time(time_pressed: u32, time_max: u32) -> u32 {
+fn pressed_to_distance_over_time(time_pressed: u64, time_max: u64) -> u64 {
     let speed = time_pressed;
     let remaining_time = time_max - time_pressed;
 
     speed * remaining_time
 }
 
-fn race_to_winning_ways(race: Race) -> u32 {
+fn race_to_winning_ways(race: Race) -> u64 {
     (0..race.time).map(|potential_time| {
         pressed_to_distance_over_time(potential_time, race.time)
-    }).filter(|&distance| distance > race.record_distance).count() as u32
+    }).filter(|&distance| distance > race.record_distance).count() as u64
 }
 
 #[cfg(test)]
